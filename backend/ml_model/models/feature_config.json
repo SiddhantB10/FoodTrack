@@ -1,0 +1,23 @@
+{
+  "feature_columns": [
+    "Distance_km",
+    "Preparation_Time_min",
+    "Courier_Experience_yrs",
+    "Weather_encoded",
+    "Traffic_Level_encoded",
+    "Time_of_Day_encoded",
+    "Vehicle_Type_encoded",
+    "Distance_Category_encoded",
+    "Prep_Category_encoded",
+    "Experience_Category_encoded"
+  ],
+  "categorical_columns": [
+    "Weather",
+    "Traffic_Level",
+    "Time_of_Day",
+    "Vehicle_Type",
+    "Distance_Category",
+    "Prep_Category",
+    "Experience_Category"
+  ]
+}

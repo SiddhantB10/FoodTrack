@@ -1,0 +1,25 @@
+{
+  "model_version": "2.0.0",
+  "training_date": "2026-01-28 12:10:17",
+  "dataset_size": 1000,
+  "train_size": 700,
+  "val_size": 150,
+  "test_size": 150,
+  "features_count": 10,
+  "xgb_performance": {
+    "mae": 7.783830356597901,
+    "rmse": 10.726538318496916,
+    "r2_score": 0.7336058879262544
+  },
+  "rf_performance": {
+    "mae": 7.229565306051972,
+    "rmse": 10.367407649997542,
+    "r2_score": 0.7511453297325644
+  },
+  "ensemble_performance": {
+    "mae": 7.3865569534300874,
+    "rmse": 10.305280023419842,
+    "r2_score": 0.7541189612471182,
+    "accuracy": 86.78769922472557
+  }
+}
