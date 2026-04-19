@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Database, 
@@ -11,6 +12,7 @@ import {
   TrendingUp,
   Zap
 } from 'lucide-react'
+import { fetchModelInfo } from '@/lib/modelApi'
 
 const steps = [
   {
@@ -70,8 +72,8 @@ const steps = [
 const benefits = [
   {
     icon: TrendingUp,
-    title: '95% Accuracy',
-    description: 'Consistently accurate predictions across diverse scenarios',
+    title: 'Live Accuracy',
+    description: 'Accuracy is shown from backend model metadata in real time.',
   },
   {
     icon: Zap,
@@ -86,6 +88,20 @@ const benefits = [
 ]
 
 export default function HowItWorksPage() {
+  const [accuracyText, setAccuracyText] = useState('Live')
+
+  useEffect(() => {
+    const loadModelInfo = async () => {
+      const modelInfo = await fetchModelInfo()
+      if (!modelInfo) {
+        return
+      }
+      setAccuracyText(`${modelInfo.accuracy.toFixed(1)}%`)
+    }
+
+    loadModelInfo()
+  }, [])
+
   return (
     <div className="min-h-screen pt-24 pb-20">
       {/* Hero Section */}
@@ -243,8 +259,12 @@ export default function HowItWorksPage() {
                 <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center mx-auto mb-6">
                   <benefit.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-display font-bold mb-3">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
+                <h3 className="text-xl font-display font-bold mb-3">
+                  {index === 0 ? `${accuracyText} Accuracy` : benefit.title}
+                </h3>
+                <p className="text-gray-600">
+                  {index === 0 ? 'Current value is read from the live model API.' : benefit.description}
+                </p>
               </motion.div>
             ))}
           </div>

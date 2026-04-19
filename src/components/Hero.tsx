@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { fetchModelInfo } from '@/lib/modelApi'
 
 const Hero3DScene = dynamic(
   () => import('@/components/3D/Scene3D').then((mod) => mod.Hero3DScene),
@@ -11,6 +13,23 @@ const Hero3DScene = dynamic(
 )
 
 export default function Hero() {
+  const [accuracyText, setAccuracyText] = useState('N/A')
+  const [recordsText, setRecordsText] = useState('N/A')
+
+  useEffect(() => {
+    const loadModelInfo = async () => {
+      const modelInfo = await fetchModelInfo()
+      if (!modelInfo) {
+        return
+      }
+
+      setAccuracyText(`${modelInfo.accuracy.toFixed(1)}%`)
+      setRecordsText(`${modelInfo.trainingDataSize.toLocaleString()}`)
+    }
+
+    loadModelInfo()
+  }, [])
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden gradient-bg">
       {/* Animated background elements */}
@@ -47,7 +66,7 @@ export default function Hero() {
               transition={{ delay: 0.3 }}
               className="text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight"
             >
-              Predicting Your Food's Arrival,{' '}
+              Predicting Your Food&apos;s Arrival,{' '}
               <span className="gradient-text">Smarter & Faster</span>
             </motion.h1>
 
@@ -98,12 +117,12 @@ export default function Hero() {
               className="grid grid-cols-3 gap-6 mt-12 pt-12 border-t border-gray-200"
             >
               <div className="text-center lg:text-left">
-                <div className="text-3xl md:text-4xl font-bold gradient-text">95%</div>
-                <div className="text-sm text-gray-600 mt-1">Accuracy</div>
+                <div className="text-3xl md:text-4xl font-bold gradient-text">{accuracyText}</div>
+                <div className="text-sm text-gray-600 mt-1">Live Accuracy</div>
               </div>
               <div className="text-center lg:text-left">
-                <div className="text-3xl md:text-4xl font-bold gradient-text">10k+</div>
-                <div className="text-sm text-gray-600 mt-1">Predictions</div>
+                <div className="text-3xl md:text-4xl font-bold gradient-text">{recordsText}</div>
+                <div className="text-sm text-gray-600 mt-1">Training Records</div>
               </div>
               <div className="text-center lg:text-left">
                 <div className="text-3xl md:text-4xl font-bold gradient-text">&lt;2min</div>

@@ -1,10 +1,29 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import PredictionForm from '@/components/PredictionForm'
 import { Sparkles } from 'lucide-react'
+import { fetchModelInfo } from '@/lib/modelApi'
 
 export default function PredictPage() {
+  const [accuracyLabel, setAccuracyLabel] = useState('N/A')
+  const [featuresLabel, setFeaturesLabel] = useState('N/A')
+
+  useEffect(() => {
+    const loadModelInfo = async () => {
+      const modelInfo = await fetchModelInfo()
+      if (!modelInfo) {
+        return
+      }
+
+      setAccuracyLabel(`${modelInfo.accuracy.toFixed(1)}%`)
+      setFeaturesLabel(`${modelInfo.features.length}`)
+    }
+
+    loadModelInfo()
+  }, [])
+
   return (
     <div className="min-h-screen pt-24 pb-20 gradient-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,15 +69,15 @@ export default function PredictPage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary-500 mb-2">95%</div>
+              <div className="text-3xl font-bold text-primary-500 mb-2">{accuracyLabel}</div>
               <div className="text-sm text-gray-600">
-                Average prediction accuracy
+                Live model accuracy
               </div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary-500 mb-2">5+</div>
+              <div className="text-3xl font-bold text-primary-500 mb-2">{featuresLabel}</div>
               <div className="text-sm text-gray-600">
-                Key factors analyzed
+                Features used by model
               </div>
             </div>
             <div>

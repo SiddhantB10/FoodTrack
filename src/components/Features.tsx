@@ -7,7 +7,7 @@ const features = [
   {
     icon: Target,
     title: 'Accurate ETA',
-    description: 'Precise delivery time predictions with 95% accuracy using advanced ML algorithms.',
+    description: 'Precise delivery time predictions powered by a continuously retrained ensemble model.',
     color: 'from-primary-500 to-primary-600',
   },
   {

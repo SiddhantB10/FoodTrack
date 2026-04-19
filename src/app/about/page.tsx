@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Brain, 
@@ -14,6 +15,7 @@ import {
   Users
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { fetchModelInfo } from '@/lib/modelApi'
 
 const FloatingOrb = dynamic(
   () => import('@/components/3D/Scene3D').then((mod) => mod.FloatingOrb),
@@ -47,7 +49,7 @@ const features = [
   {
     icon: Brain,
     title: 'Intelligent Predictions',
-    description: 'Our ensemble model combines multiple algorithms including XGBoost and Random Forest to deliver predictions with 95% accuracy.',
+    description: 'Our ensemble model combines XGBoost and Random Forest with live performance metrics exposed through the API.',
   },
   {
     icon: Cpu,
@@ -66,16 +68,44 @@ const features = [
   },
 ]
 
-const modelSpecs = [
-  { label: 'Model Type', value: 'Ensemble (XGBoost + Random Forest)' },
-  { label: 'Training Data', value: '100,000+ delivery records' },
-  { label: 'Features', value: '12 engineered features' },
-  { label: 'Accuracy', value: '95.2% ± 1.5%' },
-  { label: 'Inference Time', value: '< 2 seconds' },
-  { label: 'Update Frequency', value: 'Weekly retraining' },
-]
-
 export default function AboutPage() {
+  const [accuracy, setAccuracy] = useState<number | null>(null)
+  const [mae, setMae] = useState<number | null>(null)
+  const [r2, setR2] = useState<number | null>(null)
+  const [trainingSize, setTrainingSize] = useState<number | null>(null)
+  const [featureCount, setFeatureCount] = useState<number | null>(null)
+  const [modelType, setModelType] = useState<string>('Ensemble (XGBoost + Random Forest)')
+
+  useEffect(() => {
+    const loadModelInfo = async () => {
+      const modelInfo = await fetchModelInfo()
+      if (!modelInfo) {
+        return
+      }
+
+      setAccuracy(modelInfo.accuracy)
+      setMae(modelInfo.meanAbsoluteError)
+      setR2(modelInfo.r2Score)
+      setTrainingSize(modelInfo.trainingDataSize)
+      setFeatureCount(modelInfo.features.length)
+      setModelType(modelInfo.modelType)
+    }
+
+    loadModelInfo()
+  }, [])
+
+  const liveModelSpecs = useMemo(
+    () => [
+      { label: 'Model Type', value: modelType },
+      { label: 'Training Data', value: trainingSize !== null ? `${trainingSize.toLocaleString()} delivery records` : 'N/A' },
+      { label: 'Features', value: featureCount !== null ? `${featureCount} engineered features` : 'N/A' },
+      { label: 'Accuracy', value: accuracy !== null ? `${accuracy.toFixed(2)}%` : 'N/A' },
+      { label: 'Mean Absolute Error', value: mae !== null ? `${mae.toFixed(2)} min` : 'N/A' },
+      { label: 'R2 Score', value: r2 !== null ? r2.toFixed(3) : 'N/A' },
+    ],
+    [modelType, trainingSize, featureCount, accuracy, mae, r2]
+  )
+
   return (
     <div className="min-h-screen pt-24 pb-20">
       {/* Hero */}
@@ -222,7 +252,7 @@ export default function AboutPage() {
           >
             <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2">
-                {modelSpecs.map((spec, index) => (
+                {liveModelSpecs.map((spec, index) => (
                   <motion.div
                     key={spec.label}
                     initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
@@ -273,7 +303,7 @@ export default function AboutPage() {
                     Feature Engineering
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Raw data is transformed into 12 engineered features including normalized distance, 
+                    Raw data is transformed into engineered features including normalized distance, 
                     traffic intensity scores, weather impact factors, time-of-day patterns, and 
                     order complexity metrics. Features are scaled using standardization.
                   </p>
@@ -285,9 +315,9 @@ export default function AboutPage() {
                     Ensemble Prediction
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Our ensemble combines XGBoost (70% weight) and Random Forest (30% weight) 
-                    predictions. XGBoost handles complex non-linear patterns while Random Forest 
-                    provides stability. Final predictions include confidence intervals.
+                    Our ensemble combines XGBoost and Random Forest with dynamic weighting based
+                    on validation quality. Final predictions return a confidence score together
+                    with the estimated delivery time.
                   </p>
                 </div>
               </div>
@@ -310,30 +340,45 @@ export default function AboutPage() {
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-sm text-gray-600">Overall Accuracy</span>
-                      <span className="text-sm font-semibold text-primary-600">95.2%</span>
+                      <span className="text-sm font-semibold text-primary-600">
+                        {accuracy !== null ? `${accuracy.toFixed(2)}%` : 'N/A'}
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-primary-500 to-accent-500 h-2 rounded-full" style={{ width: '95.2%' }} />
+                      <div
+                        className="bg-gradient-to-r from-primary-500 to-accent-500 h-2 rounded-full"
+                        style={{ width: `${Math.min(100, Math.max(0, accuracy ?? 0))}%` }}
+                      />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-sm text-gray-600">Mean Absolute Error</span>
-                      <span className="text-sm font-semibold text-primary-600">2.1 min</span>
+                      <span className="text-sm font-semibold text-primary-600">
+                        {mae !== null ? `${mae.toFixed(2)} min` : 'N/A'}
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{ width: '92%' }} />
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(100, Math.max(0, 100 - ((mae ?? 0) * 4)))}%` }}
+                      />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-sm text-gray-600">R² Score</span>
-                      <span className="text-sm font-semibold text-primary-600">0.94</span>
+                      <span className="text-sm font-semibold text-primary-600">
+                        {r2 !== null ? r2.toFixed(3) : 'N/A'}
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style={{ width: '94%' }} />
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(100, Math.max(0, (r2 ?? 0) * 100))}%` }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -346,7 +391,9 @@ export default function AboutPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Dataset Size</span>
-                    <span className="font-semibold">100,000+ samples</span>
+                    <span className="font-semibold">
+                      {trainingSize !== null ? `${trainingSize.toLocaleString()} samples` : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Train/Val/Test Split</span>
@@ -354,11 +401,11 @@ export default function AboutPage() {
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Cross-Validation</span>
-                    <span className="font-semibold">5-Fold CV</span>
+                    <span className="font-semibold">Holdout validation set</span>
                   </div>
                   <div className="flex justify-between py-2">
                     <span className="text-gray-600">Hyperparameter Tuning</span>
-                    <span className="font-semibold">Grid Search</span>
+                    <span className="font-semibold">Weighted ensemble calibration</span>
                   </div>
                 </div>
               </div>

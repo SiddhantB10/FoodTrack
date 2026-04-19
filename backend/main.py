@@ -27,6 +27,11 @@ class PredictionInput(BaseModel):
     weather: Literal["clear", "rainy", "stormy"] = Field(..., description="Weather condition")
     prepTime: float = Field(..., gt=0, description="Restaurant preparation time in minutes")
     orderSize: Literal["small", "medium", "large"] = Field(..., description="Order size")
+    trafficIndex: float | None = Field(default=None, ge=0, le=100, description="Optional numeric traffic index (0-100)")
+    weatherSeverity: float | None = Field(default=None, ge=0, le=100, description="Optional weather severity score (0-100)")
+    restaurantLoad: float | None = Field(default=None, ge=0, le=100, description="Optional restaurant load score (0-100)")
+    riderAvailability: float | None = Field(default=None, ge=0, le=100, description="Optional rider availability score (0-100)")
+    pickupDelayMin: float | None = Field(default=None, ge=0, le=120, description="Optional pickup delay in minutes")
 
 class PredictionOutput(BaseModel):
     estimatedTime: float
@@ -85,7 +90,12 @@ def predict_delivery_time(data: PredictionInput):
             traffic=data.traffic,
             weather=data.weather,
             prep_time=data.prepTime,
-            order_size=data.orderSize
+            order_size=data.orderSize,
+            traffic_index=data.trafficIndex,
+            weather_severity=data.weatherSeverity,
+            restaurant_load=data.restaurantLoad,
+            rider_availability=data.riderAvailability,
+            pickup_delay_min=data.pickupDelayMin,
         )
         
         # Generate prediction ID
@@ -103,7 +113,12 @@ def predict_delivery_time(data: PredictionInput):
                 "traffic": data.traffic,
                 "weather": data.weather,
                 "prepTime": data.prepTime,
-                "orderSize": data.orderSize
+                "orderSize": data.orderSize,
+                "trafficIndex": data.trafficIndex,
+                "weatherSeverity": data.weatherSeverity,
+                "restaurantLoad": data.restaurantLoad,
+                "riderAvailability": data.riderAvailability,
+                "pickupDelayMin": data.pickupDelayMin,
             },
             modelVersion=model_info.get('version', '2.0.0'),
             predictionId=prediction_id,
@@ -124,7 +139,7 @@ def get_model_info():
     if predictor.is_loaded:
         return {
             "modelVersion": model_info['version'],
-            "modelType": "Ensemble (XGBoost 70% + Random Forest 30%)",
+            "modelType": "Ensemble (XGBoost + Gradient Boosting, dynamically weighted)",
             "status": "Real trained models loaded",
             "features": [
                 "distance_km",

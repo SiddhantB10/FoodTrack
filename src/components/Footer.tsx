@@ -34,7 +34,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-gray-600 mb-4 max-w-md">
-              Predicting your food's arrival time with machine learning precision. 
+              Predicting your food&apos;s arrival time with machine learning precision. 
               Smart, accurate, and reliable ETA predictions for better delivery experiences.
             </p>
             <div className="flex space-x-4">

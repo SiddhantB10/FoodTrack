@@ -10,20 +10,10 @@ import {
   Package,
   ArrowRight,
   CheckCircle2,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
-
-interface PredictionResult {
-  estimatedTime: number
-  confidence: number
-  factors: {
-    distance: number
-    traffic: string
-    weather: string
-    prepTime: number
-    orderSize: string
-  }
-}
+import { predictDelivery, type PredictResponse } from '@/lib/modelApi'
 
 export default function PredictionForm() {
   const [formData, setFormData] = useState({
@@ -34,48 +24,31 @@ export default function PredictionForm() {
     orderSize: 'medium',
   })
 
-  const [result, setResult] = useState<PredictionResult | null>(null)
+  const [result, setResult] = useState<PredictResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Simple ML-like calculation for demo
-    const baseTime = parseFloat(formData.distance) * 3 // 3 min per km
-    const trafficMultiplier = 
-      formData.traffic === 'low' ? 0.8 : 
-      formData.traffic === 'medium' ? 1 : 1.3
-    const weatherMultiplier = 
-      formData.weather === 'clear' ? 1 : 
-      formData.weather === 'rainy' ? 1.2 : 1.4
-    const orderMultiplier = 
-      formData.orderSize === 'small' ? 0.9 : 
-      formData.orderSize === 'medium' ? 1 : 1.1
-
-    const estimatedTime = Math.round(
-      baseTime * trafficMultiplier * weatherMultiplier * orderMultiplier +
-      parseFloat(formData.prepTime)
-    )
-
-    const confidence = Math.min(95, Math.max(85, 90 + Math.random() * 10))
-
-    setResult({
-      estimatedTime,
-      confidence,
-      factors: {
+    try {
+      const prediction = await predictDelivery({
         distance: parseFloat(formData.distance),
-        traffic: formData.traffic,
-        weather: formData.weather,
+        traffic: formData.traffic as 'low' | 'medium' | 'high',
+        weather: formData.weather as 'clear' | 'rainy' | 'stormy',
         prepTime: parseFloat(formData.prepTime),
-        orderSize: formData.orderSize,
-      },
-    })
+        orderSize: formData.orderSize as 'small' | 'medium' | 'large',
+      })
 
-    setIsLoading(false)
+      setResult(prediction)
+    } catch {
+      setError('Unable to get prediction from backend API. Please ensure the backend is running on port 8000.')
+      setResult(null)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (
@@ -86,6 +59,7 @@ export default function PredictionForm() {
       [e.target.name]: e.target.value,
     })
     setResult(null)
+    setError(null)
   }
 
   return (
@@ -102,6 +76,13 @@ export default function PredictionForm() {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="flex items-start space-x-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           {/* Distance */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
@@ -307,7 +288,7 @@ export default function PredictionForm() {
                     Expected arrival between
                   </div>
                   <div className="text-center text-lg font-semibold text-gray-900 mt-1">
-                    {result.estimatedTime - 5} - {result.estimatedTime + 5} minutes
+                    {Math.max(1, Math.round(result.estimatedTime - 5))} - {Math.round(result.estimatedTime + 5)} minutes
                   </div>
                 </div>
               </div>

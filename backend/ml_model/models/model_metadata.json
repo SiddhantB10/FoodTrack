@@ -1,25 +1,42 @@
 {
-  "model_version": "2.0.0",
-  "training_date": "2026-01-28 12:10:17",
+  "model_version": "2.3.1",
+  "training_date": "2026-04-17 00:12:03",
   "dataset_size": 1000,
   "train_size": 700,
   "val_size": 150,
   "test_size": 150,
   "features_count": 10,
-  "xgb_performance": {
-    "mae": 7.783830356597901,
-    "rmse": 10.726538318496916,
-    "r2_score": 0.7336058879262544
+  "feature_variant": "baseline",
+  "target_stats": {
+    "min": 8.0,
+    "max": 153.0,
+    "mean": 56.732
   },
-  "rf_performance": {
-    "mae": 7.229565306051972,
-    "rmse": 10.367407649997542,
-    "r2_score": 0.7511453297325644
+  "operational_features_enabled": false,
+  "ensemble_weights": {
+    "xgb": 0.4851781616222924,
+    "gbr": 0.5148218383777076
+  },
+  "xgb_performance": {
+    "mae": 6.795793342590332,
+    "rmse": 9.537397048892554,
+    "r2_score": 0.789396700646033,
+    "val_mae": 6.639325764973958
+  },
+  "gbr_performance": {
+    "mae": 6.778880323325885,
+    "rmse": 9.843854587861735,
+    "r2_score": 0.7756449631213624,
+    "val_mae": 6.257030352893184
   },
   "ensemble_performance": {
-    "mae": 7.3865569534300874,
-    "rmse": 10.305280023419842,
-    "r2_score": 0.7541189612471182,
-    "accuracy": 86.78769922472557
+    "mae": 6.679153284528224,
+    "rmse": 9.58001624515119,
+    "r2_score": 0.7875102744050511,
+    "accuracy": 88.05302894491732
+  },
+  "variant_comparison": {
+    "baseline_accuracy": 88.05302894491732,
+    "operational_accuracy": 87.38723602962794
   }
 }
